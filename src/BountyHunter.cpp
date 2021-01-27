@@ -21,60 +21,60 @@ Updated : 02/01/2020
 
 #include <cstring>
 
-#define SET_CURRENCY 0  //0 for gold, 1 for honor, 2 for tokens
+#define SET_CURRENCY 0  //0代表金币，1代表荣誉点，2代表代币
 #define TOKEN_ID 0 // token id
 
 #if SET_CURRENCY == 0
-#define BOUNTY_1 "I would like to place a 20g bounty."
-#define BOUNTY_2 "I would like to place a 40g bounty."
-#define BOUNTY_3 "I would like to place a 100g bounty."
-#define BOUNTY_4 "I would like to place a 200g bounty."
-#define BOUNTY_5 "I would like to place a 300g bounty."
-#define BOUNTY_6 "I would like to place a 400g bounty."
-#define BOUNTY_7 "I would like to place a 500g bounty."
-#define BOUNTY_8 "I would like to place a 700g bounty."
+#define BOUNTY_1 "我想悬赏100G。"
+#define BOUNTY_2 "我想悬赏300G。"
+#define BOUNTY_3 "我想悬赏500G。"
+#define BOUNTY_4 "我想悬赏1000G。"
+#define BOUNTY_5 "我想悬赏2000G。"
+#define BOUNTY_6 "我想悬赏3000G。"
+#define BOUNTY_7 "我想悬赏5000G。"
+#define BOUNTY_8 "我想悬赏10000G。"
 #endif
 #if SET_CURRENCY == 1
-#define BOUNTY_1 "I would like to place a 20 honor bounty."
-#define BOUNTY_2 "I would like to place a 40 honor bounty."
-#define BOUNTY_3 "I would like to place a 100 honor bounty."
-#define BOUNTY_4 "I would like to place a 200 honor bounty."
+#define BOUNTY_1 "我想悬赏100荣誉点。"
+#define BOUNTY_2 "我想悬赏500荣誉点。"
+#define BOUNTY_3 "我想悬赏1000荣誉点。"
+#define BOUNTY_4 "我想悬赏2000荣誉点。"
 #endif
 #if SET_CURRENCY == 2
-#define BOUNTY_1 "I would like to place a 1 token bounty."
-#define BOUNTY_2 "I would like to place a 3 token bounty."
-#define BOUNTY_3 "I would like to place a 5 token bounty."
+#define BOUNTY_1 "我想悬赏10T.C币。"
+#define BOUNTY_2 "我想悬赏30T.C币。"
+#define BOUNTY_3 "我想悬赏50T.C币。"
 
 #endif
 
-#define PLACE_BOUNTY "I would like to place a bounty."
-#define LIST_BOUNTY "List the current bounties."
-#define NVM "Nevermind"
-#define WIPE_BOUNTY "Wipe bounties"
+#define PLACE_BOUNTY "我想悬赏"
+#define LIST_BOUNTY "列出当前的悬赏。"
+#define NVM "别介意"
+#define WIPE_BOUNTY "取消悬赏"
 
 
 
 
 #if SET_CURRENCY != 2
-//these are just visual prices, if you want to to change the real one, edit the sql further below
+//这些只是可视化的价格，如果您想更改真实的价格，请进一步编辑下面的sql
 enum BountyPrice
 {
-	BOUNTY_PRICE_1 = 20,
-	BOUNTY_PRICE_2 = 40,
-	BOUNTY_PRICE_3 = 100,
-	BOUNTY_PRICE_4 = 200,
-	BOUNTY_PRICE_5 = 300,
-	BOUNTY_PRICE_6 = 400,
-	BOUNTY_PRICE_7 = 500,
-	BOUNTY_PRICE_8 = 700,
+	BOUNTY_PRICE_1 = 100,
+	BOUNTY_PRICE_2 = 300,
+	BOUNTY_PRICE_3 = 500,
+	BOUNTY_PRICE_4 = 1000,
+	BOUNTY_PRICE_5 = 2000,
+	BOUNTY_PRICE_6 = 3000,
+	BOUNTY_PRICE_7 = 5000,
+	BOUNTY_PRICE_8 = 10000,
 };
 #else
 enum BountyPrice
 {
-	BOUNTY_PRICE_1 = 1,
-	BOUNTY_PRICE_2 = 3,
-	BOUNTY_PRICE_3 = 5,
-	BOUNTY_PRICE_4 = 10,
+	BOUNTY_PRICE_1 = 100,
+	BOUNTY_PRICE_2 = 500,
+	BOUNTY_PRICE_3 = 1000,
+	BOUNTY_PRICE_4 = 2000,
 };
 #endif
 
@@ -85,18 +85,18 @@ bool passChecks(Player * pPlayer, const char * name)
 	WorldSession * m_session = pPlayer->GetSession();
 	if(!pBounty)
 	{
-		m_session->SendNotification("The player is offline or doesn't exist!");
+		m_session->SendNotification("玩家离线或不存在!");
 		return false;
 	}
 	QueryResult result = CharacterDatabase.PQuery("SELECT * FROM bounties WHERE guid ='%u'", pBounty->GetGUID());
 	if(result)
 	{
-		m_session->SendNotification("This player already has a bounty on them!");
+		m_session->SendNotification("这个玩家已经得到了他们的赏金!");
 		return false;
 	}
 	if(pPlayer->GetGUID() == pBounty->GetGUID())
 	{
-		m_session->SendNotification("You cannot set a bounty on yourself!");
+		m_session->SendNotification("你不能对自己设赏金!");
 		return false;
 	}
 	return true;
@@ -107,9 +107,9 @@ void alertServer(const char * name, int msg)
 	std::string message;
 	if(msg == 1)
 	{
-		message = "A bounty has been placed on ";
+		message = "已经有人悬赏了 ";
 		message += name;
-		message += ". Kill them immediately to collect the reward!";
+		message += ". 立即杀死他们以获得悬赏!";
 	}
 	else if(msg == 2)
 	{
@@ -132,7 +132,7 @@ bool hasCurrency(Player * pPlayer, uint32 required, int currency)
 			uint32 requiredmoney = (required * 10000);
 			if(currentmoney < requiredmoney)
 			{
-				m_session->SendNotification("You don't have enough gold!");
+				m_session->SendNotification("你没有足够的金币!");
 				return false;
 			}
 			pPlayer->SetMoney(currentmoney - requiredmoney);
@@ -143,7 +143,7 @@ bool hasCurrency(Player * pPlayer, uint32 required, int currency)
 			uint32 currenthonor = pPlayer->GetHonorPoints();
 			if(currenthonor < required)
 			{
-				m_session->SendNotification("You don't have enough honor!");
+				m_session->SendNotification("你没有足够的荣誉点!");
 				return false;
 			}
 			pPlayer->SetHonorPoints(currenthonor - required);
@@ -153,7 +153,7 @@ bool hasCurrency(Player * pPlayer, uint32 required, int currency)
 			{
 			if(!pPlayer->HasItemCount(TOKEN_ID, required))
 			{
-				m_session->SendNotification("You don't have enough tokens!");
+				m_session->SendNotification("你没有足够的T.C币!");
 				return false;
 			}
 			pPlayer->DestroyItemCount(TOKEN_ID, required, true, false);
@@ -223,7 +223,7 @@ class BountyHunter : public CreatureScript
 							option = names[0].GetString();
 							option +=" ";
 							option += fields[1].GetString();
-							option += " gold";
+							option += " 金币";
 							pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, option, GOSSIP_SENDER_MAIN, 1);
 						}while(Bounties->NextRow());
 					}
@@ -237,7 +237,7 @@ class BountyHunter : public CreatureScript
 						option = names[0].GetString();
 						option +=" ";
 						option += fields[1].GetString();
-						option += " gold";
+						option += " 金币";
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, option, GOSSIP_SENDER_MAIN, 1);
 						
 					}
@@ -255,7 +255,7 @@ class BountyHunter : public CreatureScript
 							option = names[0].GetString();
 							option +=" ";
 							option += fields[1].GetString();
-							option += " honor";
+							option += " 荣誉点";
 							pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, option, GOSSIP_SENDER_MAIN, 1);
 						}while(Bounties->NextRow());
 					}
@@ -269,7 +269,7 @@ class BountyHunter : public CreatureScript
 						option = names[0].GetString();
 						option +=" ";
 						option += fields[1].GetString();
-						option += " honor";
+						option += " 荣誉点";
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, option, GOSSIP_SENDER_MAIN, 1);
 						
 					}
@@ -287,7 +287,7 @@ class BountyHunter : public CreatureScript
 							option = names[0].GetString();
 							option +=" ";
 							option += fields[1].GetString();
-							option += " coins";
+							option += " T.C币";
 							pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, option, GOSSIP_SENDER_MAIN, 1);
 						}while(Bounties->NextRow());
 					}
@@ -301,7 +301,7 @@ class BountyHunter : public CreatureScript
 						option = names[0].GetString();
 						option +=" ";
 						option += fields[1].GetString();
-						option += " coins";
+						option += " T.C币";
 						pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_BATTLE, option, GOSSIP_SENDER_MAIN, 1);
 						
 					}
@@ -421,7 +421,7 @@ public:
         // Announce Module
         if (sConfigMgr->GetBoolDefault("BountyhunterAnnounce.Enable", true))
         {
-                ChatHandler(player->GetSession()).SendSysMessage("This server is running the |cff4CFF00Bounty Hunter |rmodule.");
+                ChatHandler(player->GetSession()).SendSysMessage("服务器已启用 |cff4CFF00赏金猎人 |模块。");
          }
     }
 };
